@@ -2,9 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict
 
-from auth_service.domain.value_objects.jti import JTI
-from auth_service.domain.value_objects.token_type import TokenType
-from auth_service.domain.value_objects.user_id import UserId
+from auth_service.domain.value_objects import JTI, TokenType, UserId
 
 
 @dataclass(frozen=True)

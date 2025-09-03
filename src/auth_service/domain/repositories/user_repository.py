@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from auth_service.domain.entities.user import User
-from auth_service.domain.value_objects.user_id import UserId
-from auth_service.domain.value_objects.username import Username
+from auth_service.domain.entities import User
+from auth_service.domain.value_objects import UserId, Username
 
 
 class UserRepository(ABC):

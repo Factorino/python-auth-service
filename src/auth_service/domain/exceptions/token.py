@@ -1,4 +1,4 @@
-from auth_service.domain.value_objects.token_type import TokenType
+from auth_service.domain.value_objects import TokenType
 
 
 class TokenError(Exception):

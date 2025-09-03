@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
-from auth_service.domain.value_objects.jti import JTI
-from auth_service.domain.value_objects.user_id import UserId
+from auth_service.domain.value_objects import JTI, UserId
 
 
 class SessionRepository(ABC):

@@ -2,8 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
-from auth_service.domain.value_objects.user_id import UserId
-from auth_service.domain.value_objects.username import Username
+from auth_service.domain.value_objects import UserId, Username
 
 
 @dataclass

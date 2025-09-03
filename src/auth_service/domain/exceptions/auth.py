@@ -1,4 +1,4 @@
-from auth_service.domain.entities.user import Username
+from auth_service.domain.value_objects import Username
 
 
 class AuthenticationError(Exception):

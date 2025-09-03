@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "python-auth-service"
+version = "0.1.0"
+description = ""
+authors = ["Factorino73 <masenkin73@xmail.ru>"]
+readme = "README.md"
+packages = [{ include = "auth_service", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = {extras = ["standard"], version = "^0.116.1"}
+dishka = "^1.6.0"
+pyjwt = {extras = ["bcrypt"], version = "^2.10.1"}
+sqlalchemy = "^2.0.43"
+pydantic = "^2.11.7"
+pydantic-settings = "^2.10.1"
+six = "^1.17.0"
+
+[tool.poetry.scripts]
+auth_service = "src.auth_service.main:main"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

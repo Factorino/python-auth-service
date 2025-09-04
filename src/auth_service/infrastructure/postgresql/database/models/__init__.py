@@ -1,7 +1,9 @@
-from auth_service.infrastructure.postgresql.database.models.base import Base
-from auth_service.infrastructure.postgresql.database.models.user import UserDB
+# Auto-generated __init__.py
+
+from . import base
+from . import user
 
 __all__ = [
-    "Base",
-    "UserDB",
+    "base",
+    "user",
 ]

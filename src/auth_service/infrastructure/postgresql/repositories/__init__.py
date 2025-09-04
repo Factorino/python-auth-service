@@ -1,5 +1,7 @@
-from auth_service.infrastructure.postgresql.repositories.user_repository import SQLAlchemyUserRepository
+# Auto-generated __init__.py
+
+from . import user_repository
 
 __all__ = [
-    "SQLAlchemyUserRepository",
+    "user_repository",
 ]

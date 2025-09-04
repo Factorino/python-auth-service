@@ -6,7 +6,7 @@ from sqlalchemy.sql import Select
 
 from auth_service.domain.entities import User
 from auth_service.domain.repositories import AbstractUserRepository
-from auth_service.domain.value_objects import UserId, Username
+from auth_service.domain.value_objects import UserID, Username
 from auth_service.infrastructure.postgresql.database.models import UserDB
 
 
@@ -25,8 +25,8 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
         self._session.add(user_db)
         await self._session.flush()
         return user
-    
-    async def get_by_id(self, user_id: UserId) -> Optional[User]:
+
+    async def get_by_id(self, user_id: UserID) -> Optional[User]:
         result: Result[Tuple[UserDB]] = await self._session.execute(
             select(UserDB).where(UserDB.id == user_id.value)
         )
@@ -49,7 +49,7 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
 
     def _to_entity(self, user_db: UserDB) -> User:
         return User(
-            id=UserId(user_db.id),
+            id=UserID(user_db.id),
             username=Username(user_db.username),
             hashed_password=user_db.hashed_password,
             created_at=user_db.created_at,

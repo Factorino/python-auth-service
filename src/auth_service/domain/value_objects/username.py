@@ -1,22 +1,23 @@
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
 from typing import ClassVar
 
-@dataclass(frozen=True)
+
+@dataclass(frozen=True, slots=True)
 class Username:
     value: str
 
     # Allowed characters: letters, numbers, underscore, minus
-    # From 3 to 50 characters
-    _pattern: ClassVar[re.Pattern] = re.compile(r"^[a-zA-Z0-9_-]{3,50}$")
+    # From 3 to 30 characters
+    _pattern: ClassVar[re.Pattern] = re.compile(r"^[a-zA-Z0-9_-]{3,30}$")
 
     def __post_init__(self) -> None:
         if not self.value or not isinstance(self.value, str):
-            raise ValueError("Username must be a non-empty string")
+            raise ValueError("Username cannot be empty")
         if len(self.value) < 3:
             raise ValueError("Username must be at least 3 characters long")
-        if len(self.value) > 50:
-            raise ValueError("Username must be no longer than 50 characters")
+        if len(self.value) > 30:
+            raise ValueError("Username must be no more than 30 characters long")
         if not self._pattern.match(self.value):
             raise ValueError(
                 "Username can only contain letters, numbers, _ and - symbols"

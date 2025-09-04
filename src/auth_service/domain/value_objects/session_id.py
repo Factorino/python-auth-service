@@ -3,14 +3,14 @@ from uuid import UUID
 
 
 @dataclass(frozen=True, slots=True)
-class JTI:
+class SessionID:
     value: UUID
 
     def __str__(self) -> str:
         return str(self.value)
 
     def __eq__(self, other) -> bool:
-        if not isinstance(other, JTI):
+        if not isinstance(other, SessionID):
             return False
         return self.value == other.value
 

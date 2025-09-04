@@ -1,25 +1,25 @@
-from auth_service.domain.exceptions.auth import (
-    AuthenticationError,
+from auth_service.domain.exceptions.session import (
+    SessionNotFoundError,
+    SessionRevokedError,
+)
+from auth_service.domain.exceptions.token import (
+    TokenExpiredError,
+    TokenInvalidError,
+    TokenRevokedError,
+)
+from auth_service.domain.exceptions.user import (
     InvalidCredentialsError,
     UserAlreadyExistsError,
     UserNotFoundError,
 )
-from auth_service.domain.exceptions.token import (
-    TokenError,
-    TokenExpiredError,
-    TokenInvalidError,
-    TokenRevokedError,
-    TokenTypeError,
-)
 
 __all__ = [
-    "AuthenticationError",
     "InvalidCredentialsError",
-    "TokenError",
+    "SessionNotFoundError",
+    "SessionRevokedError",
     "TokenExpiredError",
     "TokenInvalidError",
     "TokenRevokedError",
-    "TokenTypeError",
     "UserAlreadyExistsError",
     "UserNotFoundError",
 ]

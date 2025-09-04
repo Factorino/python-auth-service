@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional
 from aioredis import Redis
 
 from auth_service.domain.repositories import AbstractSessionRepository
-from auth_service.domain.value_objects import JTI, Session, UserId
+from auth_service.domain.value_objects import JTI, Session, UserID
 
 SESSION_TEMPLETE = "session:{jti}"
 USER_SESSIONS_TEMPLATE = "user_sessions:{user_id}"
@@ -44,7 +44,7 @@ class RedisSessionRepository(AbstractSessionRepository):
         except (KeyError, ValueError):
             return None
 
-    async def get_sessions_by_user_id(self, user_id: UserId) -> List[Session]:
+    async def get_sessions_by_user_id(self, user_id: UserID) -> List[Session]:
         user_sessions_key: str = USER_SESSIONS_TEMPLATE.format(user_id=user_id.value)
 
         # Get JTIs for the user
@@ -95,7 +95,7 @@ class RedisSessionRepository(AbstractSessionRepository):
             # If data is corrupted, just delete the session
             await self._redis.delete(session_key)
 
-    async def revoke_all_sessions(self, user_id: UserId) -> None:
+    async def revoke_all_sessions(self, user_id: UserID) -> None:
         sessions: List[Session] = await self.get_sessions_by_user_id(user_id)
         for session in sessions:
             await self.revoke_session(session.jti)
@@ -142,7 +142,7 @@ class RedisSessionRepository(AbstractSessionRepository):
     def _dict_to_session(self, data: Dict[str, Any], jti: JTI) -> Session:
         return Session(
             jti=jti,
-            user_id=UserId(data["user_id"]),
+            user_id=UserID(data["user_id"]),
             created_at=datetime.fromisoformat(data["created_at"]),
             expires_at=datetime.fromisoformat(data["expires_at"]),
             device_info=data["device_info"],

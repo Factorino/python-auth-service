@@ -11,7 +11,7 @@ from auth_service.domain.exceptions.token import (
     TokenRevokedError,
 )
 from auth_service.domain.repositories import AbstractSessionRepository
-from auth_service.domain.value_objects import JTI, JWTPayload, TokenType, UserId
+from auth_service.domain.value_objects import JTI, JWTPayload, TokenType, UserID
 
 
 class JWTService:
@@ -26,12 +26,12 @@ class JWTService:
         self._refresh_token_expires_in: int = config.refresh_token_expires_in
         self._session_repository: AbstractSessionRepository = session_repository
 
-    def create_access_token(self, user_id: UserId, jti: JTI) -> str:
+    def create_access_token(self, user_id: UserID, jti: JTI) -> str:
         return self._create_token(
             user_id, jti, TokenType.ACCESS, self._access_token_expires_in
         )
 
-    def create_refresh_token(self, user_id: UserId, jti: JTI) -> str:
+    def create_refresh_token(self, user_id: UserID, jti: JTI) -> str:
         return self._create_token(
             user_id, jti, TokenType.REFRESH, self._refresh_token_expires_in
         )
@@ -58,7 +58,7 @@ class JWTService:
         return parsed_payload
 
     def _create_token(
-        self, user_id: UserId, jti: JTI, token_type: TokenType, expires_in: int
+        self, user_id: UserID, jti: JTI, token_type: TokenType, expires_in: int
     ) -> str:
         payload = JWTPayload(
             sub=user_id,
@@ -75,7 +75,7 @@ class JWTService:
         try:
             jti = JTI(payload["jti"])
             token_type = TokenType(payload["type"])
-            user_id = UserId(payload["sub"])
+            user_id = UserID(payload["sub"])
             exp: datetime = datetime.fromtimestamp(payload["exp"], timezone.utc)
             iat: datetime = datetime.fromtimestamp(payload["iat"], timezone.utc)
         except (ValueError, TypeError) as e:

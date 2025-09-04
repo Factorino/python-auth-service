@@ -1,27 +1,13 @@
-from auth_service.domain.value_objects import TokenType
-
-
-class TokenError(Exception):
-    pass
-
-
-class TokenInvalidError(TokenError):
+class TokenInvalidError(Exception):
     def __init__(self) -> None:
-        super().__init__("Token invalid.")
+        super().__init__("Token is invalid")
 
 
-class TokenExpiredError(TokenError):
+class TokenExpiredError(Exception):
     def __init__(self) -> None:
-        super().__init__("Token expired.")
+        super().__init__("Token has expired")
 
 
-class TokenRevokedError(TokenError):
+class TokenRevokedError(Exception):
     def __init__(self) -> None:
-        super().__init__("Token revoked")
-
-
-class TokenTypeError(TokenError):
-    def __init__(self, expected: TokenType, actual: TokenType) -> None:
-        super().__init__(
-            f"The type '{expected}' was expected, the '{actual}' was obtained."
-        )
+        super().__init__("Token has been revoked")

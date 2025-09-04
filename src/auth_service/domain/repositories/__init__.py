@@ -1,7 +1,9 @@
-from auth_service.domain.repositories.session_repository import SessionRepository
-from auth_service.domain.repositories.user_repository import UserRepository
+from auth_service.domain.repositories.session_repository import (
+    AbstractSessionRepository,
+)
+from auth_service.domain.repositories.user_repository import AbstractUserRepository
 
 __all__ = [
-    "SessionRepository",
-    "UserRepository",
+    "AbstractSessionRepository",
+    "AbstractUserRepository",
 ]

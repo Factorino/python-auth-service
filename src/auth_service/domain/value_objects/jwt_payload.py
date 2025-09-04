@@ -16,7 +16,7 @@ class JWTPayload:
 
     def to_dict(self) -> Dict[str, Any]:
         payload: Dict[str, Any] = {
-            "sub": int(self.sub),
+            "sub": self.sub,
             "jti": str(self.jti),
             "type": self.type,
             "exp": self.exp.timestamp(),

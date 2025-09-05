@@ -16,7 +16,6 @@ class Session:
     device_info: Optional[str] = None
     ip_address: Optional[str] = None
     user_agent: Optional[str] = None
-    revoked_at: Optional[datetime] = None
 
     @classmethod
     def create(
@@ -42,7 +41,4 @@ class Session:
 
     @property
     def is_active(self) -> bool:
-        return not self.revoked_at and datetime.now(tz=UTC) < self.expires_at
-
-    def revoke(self, revoked_at: datetime) -> None:
-        self.revoked_at = revoked_at
+        return datetime.now(tz=UTC) < self.expires_at

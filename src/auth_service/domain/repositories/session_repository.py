@@ -23,5 +23,5 @@ class AbstractSessionRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def revoke(self, session: Session) -> Session:
+    async def delete(self, jti: JTI) -> Session:
         raise NotImplementedError

@@ -1,9 +1,0 @@
-# Auto-generated __init__.py
-
-from . import database
-from . import models
-
-__all__ = [
-    "database",
-    "models",
-]

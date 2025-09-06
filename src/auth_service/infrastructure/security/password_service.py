@@ -1,7 +1,9 @@
 import bcrypt
 
+from auth_service.domain.services.password_service import AbstractPasswordService
 
-class PasswordService:
+
+class BCryptPasswordService(AbstractPasswordService):
     def hash_password(self, password: str) -> str:
         salt: bytes = bcrypt.gensalt()
         return bcrypt.hashpw(password.encode(), salt).decode()

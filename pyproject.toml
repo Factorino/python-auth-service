@@ -16,7 +16,9 @@ pydantic = "^2.11.7"
 pydantic-settings = "^2.10.1"
 six = "^1.17.0"
 bcrypt = "^4.3.0"
-aioredis = "^2.0.1"
+adaptix = "^3.0.0b11"
+redis = "^6.4.0"
+orjson = "^3.11.3"
 
 [tool.poetry.scripts]
 auth_service = "src.auth_service.main:main"

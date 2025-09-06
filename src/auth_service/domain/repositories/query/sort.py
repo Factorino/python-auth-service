@@ -17,7 +17,6 @@ class SortBy(Generic[SortField]):
 
 
 class UserSortField(StrEnum):
-    ID = "id"
     USERNAME = "username"
     STATUS = "status"
     CREATED_AT = "created_at"

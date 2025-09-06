@@ -3,7 +3,9 @@ from datetime import UTC, datetime
 from typing import Optional
 from uuid import uuid4
 
-from auth_service.domain.value_objects import JTI, SessionID, UserID
+from auth_service.domain.value_objects.jti import JTI
+from auth_service.domain.value_objects.session_id import SessionID
+from auth_service.domain.value_objects.user_id import UserID
 
 
 @dataclass(slots=True)

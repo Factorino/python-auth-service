@@ -16,3 +16,11 @@ class JTI:
 
     def __hash__(self) -> int:
         return hash(self.value)
+
+    @classmethod
+    def from_string(cls, value: str) -> "JTI":
+        return cls(UUID(value))
+
+    @classmethod
+    def from_bytes(cls, value: bytes) -> "JTI":
+        return cls.from_string(value.decode())

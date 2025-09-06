@@ -1,9 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from auth_service.domain.entities import User
-from auth_service.domain.repositories.query import Pagination, QueryResult, SortBy, UserFilters, UserSortField
-from auth_service.domain.value_objects import UserID, Username
+from auth_service.domain.entities.user import User
+from auth_service.domain.repositories.query.filters import UserFilters
+from auth_service.domain.repositories.query.pagination import Pagination
+from auth_service.domain.repositories.query.result import QueryResult
+from auth_service.domain.repositories.query.sort import SortBy, UserSortField
+from auth_service.domain.value_objects.user_id import UserID
+from auth_service.domain.value_objects.username import Username
 
 
 class AbstractUserRepository(ABC):

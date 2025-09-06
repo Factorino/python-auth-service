@@ -1,57 +1,228 @@
-from typing import Optional, Tuple
+import uuid
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
-from sqlalchemy import Result, exists, select
+from adaptix.conversion import coercer, get_converter
+from sqlalchemy import Result, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import InstrumentedAttribute
 from sqlalchemy.sql import Select
 
-from auth_service.domain.entities import User
-from auth_service.domain.repositories import AbstractUserRepository
-from auth_service.domain.value_objects import UserID, Username
-from auth_service.infrastructure.postgresql.database.models import UserDB
+from auth_service.domain.entities.user import User
+from auth_service.domain.repositories.query.filters import UserFilters
+from auth_service.domain.repositories.query.pagination import Pagination
+from auth_service.domain.repositories.query.result import QueryResult
+from auth_service.domain.repositories.query.sort import (
+    SortBy,
+    SortDirection,
+    UserSortField,
+)
+from auth_service.domain.repositories.user_repository import AbstractUserRepository
+from auth_service.domain.value_objects.user_id import UserID
+from auth_service.domain.value_objects.username import Username
+from auth_service.infrastructure.postgresql.models.user import UserORM
 
 
 class SQLAlchemyUserRepository(AbstractUserRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session: AsyncSession = session
+        self._to_domain: Callable[[UserORM], User] = self._setup_to_domain_mapper()
+        self._to_orm: Callable[[User], UserORM] = self._setup_to_orm_mapper()
 
-    async def add(self, user: User) -> User:
-        user_db = UserDB(
-            id=user.id.value,
-            username=user.username.value,
-            hashed_password=user.hashed_password,
-            created_at=user.created_at,
-            updated_at=user.updated_at,
+    async def get_all(
+        self,
+        sort_by: Optional[SortBy[UserSortField]] = None,
+        pagination: Optional[Pagination] = None,
+    ) -> QueryResult[User]:
+        # Get items with sorting and pagination
+        query: Select[Tuple[UserORM]] = select(UserORM)
+        query = self._apply_sorting(query, sort_by)
+        query = self._apply_pagination(query, pagination)
+        result: Result[Tuple[UserORM]] = await self._session.execute(query)
+        orm_items: Sequence[UserORM] = result.scalars().all()
+        # Convert ORM to Domain
+        items: List[User] = [self._to_domain(orm_item) for orm_item in orm_items]
+
+        # Count total with filters
+        count_query: Select[Tuple[int]] = select(func.count()).select_from(UserORM)
+        count_result: Result[Tuple[int]] = await self._session.execute(count_query)
+        total: int = count_result.scalar_one()
+
+        # Calculate page, page_size, total pages
+        page: int = pagination.page if pagination else 1
+        page_size: int = pagination.page_size if pagination else total
+        total_pages: int = (total + page_size - 1) // page_size if page_size > 0 else 1
+
+        return QueryResult(
+            items=items,
+            total=total,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages,
         )
-        self._session.add(user_db)
-        await self._session.flush()
-        return user
+
+    async def get_filtered(
+        self,
+        filters: UserFilters,
+        sort_by: Optional[SortBy[UserSortField]] = None,
+        pagination: Optional[Pagination] = None,
+    ) -> QueryResult[User]:
+        # Get items with filters, sorting and pagination
+        query: Select[Tuple[UserORM]] = select(UserORM)
+        query = self._apply_filters(query, filters)
+        query = self._apply_sorting(query, sort_by)
+        query = self._apply_pagination(query, pagination)
+        result: Result[Tuple[UserORM]] = await self._session.execute(query)
+        orm_items: Sequence[UserORM] = result.scalars().all()
+        # Convert ORM to Domain
+        items: List[User] = [self._to_domain(orm_item) for orm_item in orm_items]
+
+        # Count total with filters
+        count_query: Select[Tuple[int]] = select(func.count()).select_from(UserORM)
+        count_query = self._apply_filters(count_query, filters)
+        count_result: Result[Tuple[int]] = await self._session.execute(count_query)
+        total: int = count_result.scalar_one()
+
+        # Calculate page, page_size, total pages
+        page: int = pagination.page if pagination else 1
+        page_size: int = pagination.page_size if pagination else total
+        total_pages: int = (total + page_size - 1) // page_size if page_size > 0 else 1
+
+        return QueryResult(
+            items=items,
+            total=total,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages,
+        )
 
     async def get_by_id(self, user_id: UserID) -> Optional[User]:
-        result: Result[Tuple[UserDB]] = await self._session.execute(
-            select(UserDB).where(UserDB.id == user_id.value)
+        query: Select[Tuple[UserORM]] = select(UserORM).where(
+            UserORM.id == user_id.value
         )
-        user_db: Optional[UserDB] = result.scalar()
-        return self._to_entity(user_db) if user_db else None
+        result: Result[Tuple[UserORM]] = await self._session.execute(query)
+        user_orm: Optional[UserORM] = result.scalar_one_or_none()
+        return self._to_domain(user_orm) if user_orm else None
 
     async def get_by_username(self, username: Username) -> Optional[User]:
-        result: Result[Tuple[UserDB]] = await self._session.execute(
-            select(UserDB).where(UserDB.username == username.value)
+        query: Select[Tuple[UserORM]] = select(UserORM).where(
+            UserORM.username == str(username)
         )
-        user_db: Optional[UserDB] = result.scalar()
-        return self._to_entity(user_db) if user_db else None
+        result: Result[Tuple[UserORM]] = await self._session.execute(query)
+        user_orm: Optional[UserORM] = result.scalar_one_or_none()
+        return self._to_domain(user_orm) if user_orm else None
 
-    async def exists_by_username(self, username: Username) -> bool:
-        stmt: Select[Tuple[bool]] = select(
-            exists().where(UserDB.username == username.value)
+    async def add(self, user: User) -> User:
+        user_orm: UserORM = self._to_orm(user)
+        self._session.add(user_orm)
+        await self._session.flush()
+        await self._session.refresh(user_orm)
+        return self._to_domain(user_orm)
+
+    async def update(self, user: User) -> Optional[User]:
+        pass
+
+    async def delete(self, user_id: UserID) -> Optional[User]:
+        query: Select[Tuple[UserORM]] = select(UserORM).where(
+            UserORM.id == user_id.value
         )
-        result: Result[Tuple[bool]] = await self._session.execute(stmt)
+        result: Result[Tuple[UserORM]] = await self._session.execute(query)
+        user_orm: Optional[UserORM] = result.scalar_one_or_none()
+
+        if not user_orm:
+            return None
+
+        await self._session.delete(user_orm)
+        await self._session.flush()
+        return self._to_domain(user_orm)
+
+    async def count(
+        self,
+        filters: Optional[UserFilters],
+    ) -> int:
+        query: Select[Tuple[int]] = select(func.count()).select_from(UserORM)
+        query = self._apply_filters(query, filters)
+        result: Result[Tuple[int]] = await self._session.execute(query)
         return result.scalar_one()
 
-    def _to_entity(self, user_db: UserDB) -> User:
-        return User(
-            id=UserID(user_db.id),
-            username=Username(user_db.username),
-            hashed_password=user_db.hashed_password,
-            created_at=user_db.created_at,
-            updated_at=user_db.updated_at,
+    def _apply_filters(self, query: Select, filters: Optional[UserFilters]) -> Select:
+        if not filters:
+            return query
+
+        filter_dict: Dict[str, Any] = filters.to_dict(exclude_none=True)
+
+        for field_name, value in filter_dict.items():
+            # Process special suffixes __lte and __gte
+            if field_name.endswith("__lte"):
+                base_field_name: str = field_name[:-5]
+                if hasattr(UserORM, base_field_name):
+                    field: InstrumentedAttribute = getattr(UserORM, base_field_name)
+                    query = query.where(field <= value)
+                continue
+
+            if field_name.endswith("__gte"):
+                base_field_name = field_name[:-5]
+                if hasattr(UserORM, base_field_name):
+                    field: InstrumentedAttribute = getattr(UserORM, base_field_name)
+                    query = query.where(field >= value)
+                continue
+
+            # Ordinary field
+            if hasattr(UserORM, field_name):
+                field: InstrumentedAttribute = getattr(UserORM, field_name)
+
+                if isinstance(value, str):
+                    # For string values looking for an entry
+                    query = query.where(field.ilike(f"%{value}%"))
+                else:
+                    # For other values ​​accurate coincidence
+                    query = query.where(field == value)
+
+        return query
+
+    def _apply_sorting(
+        self, query: Select, sort_by: Optional[SortBy[UserSortField]]
+    ) -> Select:
+        if not sort_by:
+            return query
+
+        sort_field_name: Optional[Enum] = getattr(sort_by, "field", None)
+        sort_direction: Optional[SortDirection] = getattr(sort_by, "direction", None)
+
+        if not sort_field_name or not hasattr(UserORM, sort_field_name.name):
+            return query
+
+        field: InstrumentedAttribute = getattr(UserORM, sort_field_name.name)
+
+        if sort_direction and sort_direction == SortDirection.DESC:
+            query = query.order_by(field.desc())
+        else:
+            query = query.order_by(field.asc())
+
+        return query
+
+    def _apply_pagination(
+        self, query: Select, pagination: Optional[Pagination]
+    ) -> Select:
+        if not pagination:
+            return query
+
+        return query.offset(pagination.offset).limit(pagination.limit)
+
+    def _setup_to_domain_mapper(self) -> Callable[[UserORM], User]:
+        return get_converter(
+            src=UserORM,
+            dst=User,
+            recipe=[
+                coercer(uuid.UUID, UserID, lambda uuid: UserID(uuid)),
+            ],
+        )
+
+    def _setup_to_orm_mapper(self) -> Callable[[User], UserORM]:
+        return get_converter(
+            src=User,
+            dst=UserORM,
+            recipe=[
+                coercer(UserID, uuid.UUID, lambda user_id: user_id.value),
+            ],
         )

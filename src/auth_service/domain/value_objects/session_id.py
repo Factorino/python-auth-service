@@ -16,3 +16,11 @@ class SessionID:
 
     def __hash__(self) -> int:
         return hash(self.value)
+
+    @classmethod
+    def from_string(cls, value: str) -> "SessionID":
+        return cls(UUID(value))
+
+    @classmethod
+    def from_bytes(cls, value: bytes) -> "SessionID":
+        return cls.from_string(value.decode())

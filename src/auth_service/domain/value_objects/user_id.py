@@ -16,3 +16,11 @@ class UserID:
 
     def __hash__(self) -> int:
         return hash(self.value)
+
+    @classmethod
+    def from_string(cls, value: str) -> "UserID":
+        return cls(UUID(value))
+
+    @classmethod
+    def from_bytes(cls, value: bytes) -> "UserID":
+        return cls.from_string(value.decode())

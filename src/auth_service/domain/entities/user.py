@@ -3,7 +3,9 @@ from datetime import UTC, datetime
 from typing import Optional
 from uuid import uuid4
 
-from auth_service.domain.value_objects import UserID, Username, UserStatus
+from auth_service.domain.value_objects.user_id import UserID
+from auth_service.domain.value_objects.user_status import UserStatus
+from auth_service.domain.value_objects.username import Username
 
 
 @dataclass(slots=True)

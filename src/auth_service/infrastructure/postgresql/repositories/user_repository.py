@@ -3,10 +3,11 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 from adaptix.conversion import coercer, get_converter
-from sqlalchemy import Result, func, select
+from sqlalchemy import Result, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import InstrumentedAttribute
 from sqlalchemy.sql import Select
+from sqlalchemy.sql.dml import ReturningUpdate
 
 from auth_service.domain.entities.user import User
 from auth_service.domain.repositories.query.filters import UserFilters
@@ -17,6 +18,7 @@ from auth_service.domain.repositories.query.sort import (
     SortDirection,
     UserSortField,
 )
+from auth_service.domain.repositories.query.update import UserUpdate
 from auth_service.domain.repositories.user_repository import AbstractUserRepository
 from auth_service.domain.value_objects.user_id import UserID
 from auth_service.domain.value_objects.username import Username
@@ -119,8 +121,27 @@ class SQLAlchemyUserRepository(AbstractUserRepository):
         await self._session.refresh(user_orm)
         return self._to_domain(user_orm)
 
-    async def update(self, user: User) -> Optional[User]:
-        pass
+    async def update(self, id: UserID, data: UserUpdate) -> Optional[User]:
+        update_data: Dict[str, Any] = data.to_dict(exclude_none=True)
+
+        if not update_data:
+            return await self.get_by_id(id)
+
+        query: ReturningUpdate[Tuple[UserORM]] = (
+            update(UserORM)
+            .where(UserORM.id == id.value)
+            .values(**update_data)
+            .returning(UserORM)
+        )
+
+        result: Result[Tuple[UserORM]] = await self._session.execute(query)
+        updated_orm: Optional[UserORM] = result.scalar_one_or_none()
+
+        if not updated_orm:
+            return None
+
+        await self._session.flush()
+        return self._to_domain(updated_orm)
 
     async def delete(self, user_id: UserID) -> Optional[User]:
         query: Select[Tuple[UserORM]] = select(UserORM).where(

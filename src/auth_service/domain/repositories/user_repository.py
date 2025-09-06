@@ -6,6 +6,7 @@ from auth_service.domain.repositories.query.filters import UserFilters
 from auth_service.domain.repositories.query.pagination import Pagination
 from auth_service.domain.repositories.query.result import QueryResult
 from auth_service.domain.repositories.query.sort import SortBy, UserSortField
+from auth_service.domain.repositories.query.update import UserUpdate
 from auth_service.domain.value_objects.user_id import UserID
 from auth_service.domain.value_objects.username import Username
 
@@ -41,7 +42,7 @@ class AbstractUserRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def update(self, user: User) -> Optional[User]:
+    async def update(self, id: UserID, data: UserUpdate) -> Optional[User]:
         raise NotImplementedError
 
     @abstractmethod

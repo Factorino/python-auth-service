@@ -6,7 +6,7 @@ from auth_service.domain.value_objects.user_status import UserStatus
 
 
 @dataclass(frozen=True, slots=True)
-class BaseFilters:
+class BaseUpdate:
     def to_dict(self, exclude_none=False) -> Dict[str, Any]:
         result: Dict[str, Any] = {}
         for field in fields(self.__class__):
@@ -18,12 +18,8 @@ class BaseFilters:
 
 
 @dataclass(frozen=True, slots=True)
-class UserFilters(BaseFilters):
+class UserUpdate(BaseUpdate):
     username: Optional[str] = None
+    password_hash: Optional[str] = None
     status: Optional[UserStatus] = None
-    created_at__gte: Optional[datetime] = None
-    created_at__lte: Optional[datetime] = None
-    updated_at__gte: Optional[datetime] = None
-    updated_at__lte: Optional[datetime] = None
-    revoked_at__gte: Optional[datetime] = None
-    revoked_at__lte: Optional[datetime] = None
+    revoked_at: Optional[datetime] = None
